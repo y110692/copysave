@@ -47,8 +47,17 @@ jobs:
 
       - name: Build macOS Release
         run: |
+          set -o pipefail
           export PRODUCT_VERSION="${GITHUB_REF_NAME#v}"
-          zsh scripts/build-macos.sh
+          if ! zsh scripts/build-macos.sh > build-macos.log 2>&1; then
+            echo "::group::macOS build log"
+            cat build-macos.log
+            echo "::endgroup::"
+            while IFS= read -r line; do
+              echo "::error::$line"
+            done < <(tail -n 80 build-macos.log)
+            exit 1
+          fi
 
       - name: Prepare macOS Assets
         run: |
