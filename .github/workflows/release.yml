@@ -63,6 +63,19 @@ jobs:
           name: macos-build-log
           path: build-macos.log
 
+      - name: Report macOS Build Failure
+        if: failure()
+        run: |
+          echo "::group::macOS build log tail"
+          tail -n 120 build-macos.log || true
+          echo "::endgroup::"
+          while IFS= read -r line; do
+            line="${line//'%'/'%25'}"
+            line="${line//$'\r'/'%0D'}"
+            line="${line//$'\n'/'%0A'}"
+            echo "::error::$line"
+          done < <(tail -n 120 build-macos.log)
+
       - name: Prepare macOS Assets
         run: |
           if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
