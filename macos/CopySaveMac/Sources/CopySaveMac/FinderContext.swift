@@ -12,7 +12,7 @@ enum FinderContext {
         let applicationElement = AXUIElementCreateApplication(app.processIdentifier)
         var focusedValue: CFTypeRef?
         let result = AXUIElementCopyAttributeValue(applicationElement, kAXFocusedUIElementAttribute as CFString, &focusedValue)
-        guard result == .success, let focusedElement = focusedValue as? AXUIElement else {
+        guard result == .success, let focusedElement = axElement(from: focusedValue) else {
             return true
         }
 
@@ -80,6 +80,18 @@ enum FinderContext {
             return nil
         }
 
-        return value as? AXUIElement
+        return axElement(from: value)
+    }
+
+    private static func axElement(from value: CFTypeRef?) -> AXUIElement? {
+        guard let value else {
+            return nil
+        }
+
+        guard CFGetTypeID(value) == AXUIElementGetTypeID() else {
+            return nil
+        }
+
+        return unsafeBitCast(value, to: AXUIElement.self)
     }
 }
