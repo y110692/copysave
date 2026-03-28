@@ -13,9 +13,9 @@ final class HotKeyMonitor {
             return
         }
 
-        let keyDownMask = 1 << CGEventType.keyDown.rawValue
-        let keyUpMask = 1 << CGEventType.keyUp.rawValue
-        let mask = CGEventMask(keyDownMask | keyUpMask)
+        let keyDownMask = (1 as CGEventMask) << CGEventMask(CGEventType.keyDown.rawValue)
+        let keyUpMask = (1 as CGEventMask) << CGEventMask(CGEventType.keyUp.rawValue)
+        let mask = keyDownMask | keyUpMask
 
         let callback: CGEventTapCallBack = { _, type, event, userInfo in
             guard let userInfo = userInfo else {
