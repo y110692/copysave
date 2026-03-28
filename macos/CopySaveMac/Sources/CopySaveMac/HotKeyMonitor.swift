@@ -18,7 +18,7 @@ final class HotKeyMonitor {
         let mask = CGEventMask(keyDownMask | keyUpMask)
 
         let callback: CGEventTapCallBack = { _, type, event, userInfo in
-            guard let userInfo else {
+            guard let userInfo = userInfo else {
                 return Unmanaged.passUnretained(event)
             }
 
@@ -41,19 +41,19 @@ final class HotKeyMonitor {
         }
 
         runLoopSource = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, eventTap, 0)
-        if let runLoopSource {
-            CFRunLoopAddSource(CFRunLoopGetMain(), runLoopSource, .commonModes)
+        if let runLoopSource = runLoopSource {
+            CFRunLoopAddSource(CFRunLoopGetMain(), runLoopSource, CFRunLoopMode.commonModes)
         }
 
         CGEvent.tapEnable(tap: eventTap, enable: true)
     }
 
     func stop() {
-        if let runLoopSource {
-            CFRunLoopRemoveSource(CFRunLoopGetMain(), runLoopSource, .commonModes)
+        if let runLoopSource = runLoopSource {
+            CFRunLoopRemoveSource(CFRunLoopGetMain(), runLoopSource, CFRunLoopMode.commonModes)
         }
 
-        if let eventTap {
+        if let eventTap = eventTap {
             CFMachPortInvalidate(eventTap)
         }
 

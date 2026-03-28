@@ -1,5 +1,6 @@
 #!/bin/zsh
 set -euo pipefail
+set -x
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
@@ -29,33 +30,36 @@ chmod +x "$APP_MACOS_DIR/$APP_NAME"
 
 sed "s/__VERSION__/$PRODUCT_VERSION/g" "$SUPPORT_DIR/Info.plist.template" > "$APP_CONTENTS/Info.plist"
 
-qlmanage -t -s 1024 -o "$OUTPUT_DIR" "$SUPPORT_DIR/AppIcon.svg" > /dev/null
-ICON_SOURCE_PNG="$OUTPUT_DIR/AppIcon.svg.png"
+if qlmanage -t -s 1024 -o "$OUTPUT_DIR" "$SUPPORT_DIR/AppIcon.svg" > /dev/null 2>&1; then
+  ICON_SOURCE_PNG="$OUTPUT_DIR/AppIcon.svg.png"
 
-mkdir -p "$ICONSET_DIR"
-sips -z 16 16     "$ICON_SOURCE_PNG" --out "$ICONSET_DIR/icon_16x16.png" > /dev/null
-sips -z 32 32     "$ICON_SOURCE_PNG" --out "$ICONSET_DIR/icon_16x16@2x.png" > /dev/null
-sips -z 32 32     "$ICON_SOURCE_PNG" --out "$ICONSET_DIR/icon_32x32.png" > /dev/null
-sips -z 64 64     "$ICON_SOURCE_PNG" --out "$ICONSET_DIR/icon_32x32@2x.png" > /dev/null
-sips -z 128 128   "$ICON_SOURCE_PNG" --out "$ICONSET_DIR/icon_128x128.png" > /dev/null
-sips -z 256 256   "$ICON_SOURCE_PNG" --out "$ICONSET_DIR/icon_128x128@2x.png" > /dev/null
-sips -z 256 256   "$ICON_SOURCE_PNG" --out "$ICONSET_DIR/icon_256x256.png" > /dev/null
-sips -z 512 512   "$ICON_SOURCE_PNG" --out "$ICONSET_DIR/icon_256x256@2x.png" > /dev/null
-sips -z 512 512   "$ICON_SOURCE_PNG" --out "$ICONSET_DIR/icon_512x512.png" > /dev/null
-cp "$ICON_SOURCE_PNG" "$ICONSET_DIR/icon_512x512@2x.png"
+  if [[ -f "$ICON_SOURCE_PNG" ]]; then
+    mkdir -p "$ICONSET_DIR"
+    sips -z 16 16     "$ICON_SOURCE_PNG" --out "$ICONSET_DIR/icon_16x16.png" > /dev/null
+    sips -z 32 32     "$ICON_SOURCE_PNG" --out "$ICONSET_DIR/icon_16x16@2x.png" > /dev/null
+    sips -z 32 32     "$ICON_SOURCE_PNG" --out "$ICONSET_DIR/icon_32x32.png" > /dev/null
+    sips -z 64 64     "$ICON_SOURCE_PNG" --out "$ICONSET_DIR/icon_32x32@2x.png" > /dev/null
+    sips -z 128 128   "$ICON_SOURCE_PNG" --out "$ICONSET_DIR/icon_128x128.png" > /dev/null
+    sips -z 256 256   "$ICON_SOURCE_PNG" --out "$ICONSET_DIR/icon_128x128@2x.png" > /dev/null
+    sips -z 256 256   "$ICON_SOURCE_PNG" --out "$ICONSET_DIR/icon_256x256.png" > /dev/null
+    sips -z 512 512   "$ICON_SOURCE_PNG" --out "$ICONSET_DIR/icon_256x256@2x.png" > /dev/null
+    sips -z 512 512   "$ICON_SOURCE_PNG" --out "$ICONSET_DIR/icon_512x512.png" > /dev/null
+    cp "$ICON_SOURCE_PNG" "$ICONSET_DIR/icon_512x512@2x.png"
+    iconutil -c icns "$ICONSET_DIR" -o "$APP_RESOURCES_DIR/AppIcon.icns"
+    rm -f "$ICON_SOURCE_PNG"
+    rm -rf "$ICONSET_DIR"
+  fi
+fi
 
-iconutil -c icns "$ICONSET_DIR" -o "$APP_RESOURCES_DIR/AppIcon.icns"
-rm -f "$ICON_SOURCE_PNG"
-rm -rf "$ICONSET_DIR"
+if xcrun --find swift-stdlib-tool > /dev/null 2>&1; then
+  xcrun swift-stdlib-tool \
+    --copy \
+    --scan-executable "$APP_MACOS_DIR/$APP_NAME" \
+    --destination "$APP_FRAMEWORKS_DIR" \
+    --platform macosx || true
+fi
 
-xcrun swift-stdlib-tool \
-  --copy \
-  --verbose \
-  --scan-executable "$APP_MACOS_DIR/$APP_NAME" \
-  --destination "$APP_FRAMEWORKS_DIR" \
-  --platform macosx
-
-codesign --force --deep --sign - "$APP_BUNDLE"
+codesign --force --deep --sign - "$APP_BUNDLE" || true
 
 mkdir -p "$DMG_STAGING_DIR"
 cp -R "$APP_BUNDLE" "$DMG_STAGING_DIR/$APP_NAME.app"

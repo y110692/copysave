@@ -25,7 +25,7 @@ final class SaveDialogController: NSWindowController {
     }
 
     func runModal() -> (name: String, fileExtension: String)? {
-        guard let window else {
+        guard let window = window else {
             return nil
         }
 

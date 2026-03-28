@@ -12,11 +12,11 @@ enum FinderContext {
         let applicationElement = AXUIElementCreateApplication(app.processIdentifier)
         var focusedValue: CFTypeRef?
         let result = AXUIElementCopyAttributeValue(applicationElement, kAXFocusedUIElementAttribute as CFString, &focusedValue)
-        guard result == .success, let focusedElement = focusedValue else {
+        guard result == .success, let focusedElement = focusedValue as? AXUIElement else {
             return true
         }
 
-        return !isTextInputElement(focusedElement as! AXUIElement)
+        return !isTextInputElement(focusedElement)
     }
 
     static func frontFolderURL() -> URL? {
@@ -80,6 +80,6 @@ enum FinderContext {
             return nil
         }
 
-        return (value as! AXUIElement)
+        return value as? AXUIElement
     }
 }

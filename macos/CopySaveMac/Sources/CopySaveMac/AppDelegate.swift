@@ -46,10 +46,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         do {
             try payload.write(to: targetURL, atomically: true, encoding: .utf8)
-            let notification = NSUserNotification()
-            notification.title = "CopySave"
-            notification.informativeText = "Saved as \(targetURL.lastPathComponent)"
-            NSUserNotificationCenter.default.deliver(notification)
         } catch {
             NSSound.beep()
         }
