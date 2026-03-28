@@ -2,6 +2,8 @@
 
 CopySave is a native background utility for Windows and macOS.
 
+I made it for a very specific workflow: when you copy code or text from an LLM and want to save it straight into the current folder without first pasting it into Notepad or another editor just to create a file.
+
 When you press paste in the file manager:
 
 - On Windows it intercepts `Ctrl+V` only when File Explorer is focused on the file area
@@ -21,11 +23,11 @@ Outside Explorer and Finder, normal paste should continue unchanged.
 
 GitHub Releases are designed to publish:
 
-- `CopySave-windows-x64.exe`
-- `CopySave-macos.dmg`
+- `CopySave-<version>-windows-x64.exe`
+- `CopySave-<version>-macos-app.zip`
 
 The Windows build is a self-contained single-file executable.
-The macOS build is packaged as a self-contained `.app` and then wrapped into a `.dmg`.
+The macOS build is packaged as a self-contained `.app` bundle and uploaded as a zip archive.
 
 ## Local Build
 
@@ -44,15 +46,16 @@ dist/windows/CopySave.exe
 macOS:
 
 ```bash
-zsh scripts/build-macos.sh
+bash scripts/build-macos.sh
 ```
 
 Outputs:
 
 ```text
 dist/macos/CopySave.app
-dist/macos/CopySave-1.0.0.dmg
 ```
+
+The release workflow packages the macOS app bundle into a zip asset for GitHub Releases.
 
 ## GitHub Release Flow
 
@@ -90,5 +93,5 @@ macOS:
 
 ## Notes
 
-- macOS binaries and DMG packaging must be built on macOS
+- macOS binaries must be built on macOS
 - unsigned or ad-hoc signed builds may still trigger OS warnings depending on system settings
