@@ -9,7 +9,11 @@ enum StartupManager {
             .appendingPathComponent("Library")
             .appendingPathComponent("LaunchAgents")
 
-        try? fileManager.createDirectory(at: launchAgentsURL, withIntermediateDirectories: true)
+        try? fileManager.createDirectory(
+            at: launchAgentsURL,
+            withIntermediateDirectories: true,
+            attributes: nil
+        )
 
         let executableURL = URL(fileURLWithPath: CommandLine.arguments[0]).standardizedFileURL
         let plistURL = launchAgentsURL.appendingPathComponent("\(agentLabel).plist")
