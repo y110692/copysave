@@ -65,9 +65,9 @@ enum FinderContext {
         return false
     }
 
-    private static func attributeValue(_ attribute: CFString, for element: AXUIElement) -> String? {
+    private static func attributeValue(_ attribute: String, for element: AXUIElement) -> String? {
         var value: CFTypeRef?
-        guard AXUIElementCopyAttributeValue(element, attribute, &value) == .success else {
+        guard AXUIElementCopyAttributeValue(element, attribute as CFString, &value) == .success else {
             return nil
         }
 
