@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -28,7 +29,7 @@ jobs:
       - name: Prepare Windows Asset
         shell: pwsh
         run: |
-          $version = "${env:GITHUB_REF_NAME}".TrimStart("v")
+          $version = if ("${env:GITHUB_REF_TYPE}" -eq "tag") { "${env:GITHUB_REF_NAME}".TrimStart("v") } else { ("dev-$env:GITHUB_SHA").Substring(0, 11) }
           New-Item -ItemType Directory -Force release-assets | Out-Null
           Copy-Item dist\windows\CopySave.exe "release-assets\CopySave-$version-windows-x64.exe"
 
@@ -48,20 +49,27 @@ jobs:
       - name: Build macOS Release
         run: |
           set -o pipefail
-          export PRODUCT_VERSION="${GITHUB_REF_NAME#v}"
-          if ! zsh scripts/build-macos.sh > build-macos.log 2>&1; then
-            echo "::group::macOS build log"
-            cat build-macos.log
-            echo "::endgroup::"
-            while IFS= read -r line; do
-              echo "::error::$line"
-            done < <(tail -n 80 build-macos.log)
-            exit 1
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            export PRODUCT_VERSION="${GITHUB_REF_NAME#v}"
+          else
+            export PRODUCT_VERSION="dev-${GITHUB_SHA::7}"
           fi
+          bash scripts/build-macos.sh 2>&1 | tee build-macos.log
+
+      - name: Upload macOS Build Log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-build-log
+          path: build-macos.log
 
       - name: Prepare macOS Assets
         run: |
-          VERSION="${GITHUB_REF_NAME#v}"
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            VERSION="${GITHUB_REF_NAME#v}"
+          else
+            VERSION="dev-${GITHUB_SHA::7}"
+          fi
           mkdir -p release-assets
           cp "dist/macos/CopySave-$VERSION.dmg" "release-assets/CopySave-$VERSION-macos.dmg"
           ditto -c -k --sequesterRsrc --keepParent "dist/macos/CopySave.app" "release-assets/CopySave-$VERSION-macos-app.zip"
@@ -77,6 +85,7 @@ jobs:
     needs:
       - build-windows
       - build-macos
+    if: github.ref_type == 'tag'
 
     steps:
       - name: Download Windows Artifact
